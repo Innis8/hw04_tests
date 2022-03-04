@@ -130,6 +130,7 @@ dmypy.json
 
 # Папки, создаваемые средой разработки
 .idea
+.idea/
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -139,6 +140,7 @@ dmypy.json
 
 .vscode/
 *.code-workspace
+.vscode
 
 # Local History for Visual Studio Code
 .history/
