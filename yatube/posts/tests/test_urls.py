@@ -42,8 +42,7 @@ class PostURLTest(TestCase):
             with self.subTest(address=address):
                 response = (
                     self.guest_client.get(address)
-                    or
-                    self.authorized_client.get(address)
+                    or self.authorized_client.get(address)
                 )
                 self.assertEqual(response.status_code, url)
 
@@ -59,8 +58,7 @@ class PostURLTest(TestCase):
             with self.subTest(address=address):
                 response = (
                     self.guest_client.get(address)
-                    and
-                    self.authorized_client.get(address)
+                    and self.authorized_client.get(address)
                 )
                 self.assertTemplateUsed(response, template)
 

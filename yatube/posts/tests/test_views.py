@@ -71,26 +71,22 @@ class PostViewTest(TestCase):
     def test_namespace_uses_correct_template(self):
         """namespace:name использует соответствующий шаблон"""
         templates_pages_names = {
-            'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html': reverse(
+            reverse('posts:index'): 'posts/index.html',
+            reverse(
                 'posts:group_posts',
-                kwargs={'slug': 'test-slug'}
-            ),
-            'posts/profile.html': reverse(
+                kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
+            reverse(
                 'posts:profile',
-                kwargs={'username': self.author}
-            ),
-            'posts/post_detail.html': reverse(
+                kwargs={'username': self.author}): 'posts/profile.html',
+            reverse(
                 'posts:post_detail',
-                kwargs={'post_id': self.post.id}
-            ),
-            'posts/create_post.html': reverse('posts:post_create'),
-            'posts/create_post.html': reverse(
+                kwargs={'post_id': self.post.id}): 'posts/post_detail.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
+            reverse(
                 'posts:post_edit',
-                kwargs={'post_id': self.post.id}
-            ),
+                kwargs={'post_id': self.post.id}): 'posts/create_post.html',
         }
-        for template, reverse_name in templates_pages_names.items():
+        for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_author.get(reverse_name)
                 self.assertTemplateUsed(response, template)
@@ -136,7 +132,7 @@ class PostViewTest(TestCase):
         response = self.authorized_author.get(reverse(
             'posts:group_posts',
             kwargs={'slug': 'test-slug'}
-            )
+        )
         )
         first_object = response.context['page_obj'][0]
         post_author_0 = first_object.author
@@ -167,7 +163,7 @@ class PostViewTest(TestCase):
         response = self.authorized_author.get(reverse(
             'posts:profile',
             kwargs={'username': self.author}
-            )
+        )
         )
         first_object = response.context['page_obj'][0]
         post_author_0 = first_object.author

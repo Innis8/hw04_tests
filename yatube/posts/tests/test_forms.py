@@ -67,7 +67,7 @@ class PostFormTest(TestCase):
             )
         )
         # Проверяем, увеличилось ли число постов
-        self.assertEqual(Post.objects.count(), post_count+1)
+        self.assertEqual(Post.objects.count(), post_count + 1)
         # Проверяем, что создался ли пост с заданным содержанием
         self.assertTrue(
             Post.objects.filter(
