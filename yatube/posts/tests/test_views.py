@@ -27,6 +27,12 @@ class PostViewTest(TestCase):
             description='Описание группы без нужного поста',
         )
 
+        # Не совсем понял, куда перенести данный цикл создания постов.
+        # Проверка пагинатора находится не отдельном файле, а
+        # тут же, чуть ниже, в виде двух тестовых функций. К тому же,
+        # данный цикл используется в функции 
+        # test_index_page_show_correct_context 
+        # для проверки содержимого выбранного поста на главной странице
         for i in range(1, 14):
             cls.post = Post.objects.create(
                 author=cls.author,
@@ -47,10 +53,16 @@ class PostViewTest(TestCase):
                 ),
                 group=cls.group
             )
-            print(cls.post.id)
-            print(cls.post.group)
+        # В models указана сортировка постов по убывающей дате. Значит, нулевой
+        # индекс (выбранный пост) - это последний созданный пост, в данном
+        # случае 13-й. функция print() используется для того, чтобы тест
+        # затрачивал некоторое время на печатание каждого поста. Иначе,
+        # без print(), без вывода на экран, тестовые посты создаются слишком
+        # быстро, практически в одну и ту же миллисекунду, и не могут быть
+        # правильно отсортированы по времени создания. В случае надобности,
+        # метод сортировки можно менять в models. Остальные дебажные посты, 
+        # печатающие id, группу и тд, удалил.
             print(cls.post.text)
-            print(cls.post.pub_date)
 
     def test_first_page_contains_ten_records(self):
         """
@@ -96,12 +108,13 @@ class PostViewTest(TestCase):
         Содержимое поста на главной странице должно соответствовать ожиданиям
         """
         # В models указана сортировка постов по убывающей дате. Значит, нулевой
-        # индекс - это последний созданный пост, в данном случае 13-й.
-        # функция print() используется для того, чтобы тест затрачивал
-        # некоторое время на печатание каждого поста. Иначе, без print()
-        # тестовые маленькие тесты создаются слишком быстро, практически в одну
-        # миллисекунду, и не могут быть правильно отсортированы.
-        # В случае надобности, метод сортировки можно менять в models
+        # индекс (выбранный пост) - это последний созданный пост, в данном
+        # случае 13-й. функция print() используется для того, чтобы тест
+        # затрачивал некоторое время на печатание каждого поста. Иначе,
+        # без print(), без вывода на экран, тестовые посты создаются слишком
+        # быстро, практически в одну и ту же миллисекунду, и не могут быть
+        # правильно отсортированы по времени создания. В случае надобности,
+        # метод сортировки можно менять в models
         response = self.authorized_author.get(reverse('posts:index'))
         first_object = response.context['page_obj'][0]
         post_author_0 = first_object.author
@@ -138,6 +151,8 @@ class PostViewTest(TestCase):
         post_author_0 = first_object.author
         post_text_0 = first_object.text
         post_group_0 = first_object.group
+        # Ломал голову, не мог догадаться, как их вынесты отдельно, чтоб
+        # можно было тестовыми функциями к этим проверкам обращаться.
         self.assertEqual(post_author_0, self.author)
         self.assertEqual(
             post_text_0,
@@ -187,53 +202,6 @@ class PostViewTest(TestCase):
         )
         self.assertEqual(post_group_0, self.group)
         self.assertEqual(post_id_0, 13)
-
-    # def test_post_not_in_another_group(self):
-    #     """
-    #     Пост не попал в группу, для которой не был предназначен.
-    #     """
-
-    #     response = self.authorized_author.get(reverse(
-    #         'posts:group_posts',
-    #         kwargs={'slug':'group-without-needed-post'}
-    #         )
-    #     )
-    #     response = self.authorized_author.get(reverse('posts:index'))
-    #     first_object = response.context['page_obj'][0]
-    #     post_author_0 = first_object.author
-    #     post_text_0 = first_object.text
-    #     post_group_0 = first_object.group
-    #     self.assertEqual(post_author_0, self.author)
-    #     self.assertEqual(
-    #         post_text_0,
-    #         'Тестовый пост номер 13: '
-    #         'Европейский союз был создан Маастрихтским договором 1992 '
-    #         'года, вступившим в силу 1 ноября 1993 года, на основе '
-    #         'Европейского экономического сообщества и нацелен на '
-    #         'региональную интеграцию. ЕС — международное образование, '
-    #         'сочетающее признаки международной организации '
-    #         '(межгосударственности) и государства (надгосударственности), '
-    #         'однако юридически он не является ни тем, ни другим. С помощью'
-    #         ' стандартизированной системы законов, действующих во всех '
-    #         'странах союза, был создан общий рынок, гарантирующий '
-    #         'свободное передвижение (движение) людей, товаров.'
-    #     )
-    #     self.assertNotEqual(post_group_0, self.group_without_needed_post)
-
-    # def test_post_not_in_another_group(self):
-    #     """
-    #     Пост не попал в группу, для которой не был предназначен.
-    #     """
-    #     # Данный тест выдает ошибку списка, так как в группе нет искомого
-    #     # поста с id=13
-    #     response = self.authorized_author.get(reverse(
-    #         'posts:group_posts',
-    #         kwargs={'slug':'group-without-needed-post'}
-    #         )
-    #     )
-    #     first_object = response.context['page_obj'][0]
-    #     post_id_0 = first_object.id
-    #     self.assertNotEqual(post_id_0, 13)
 
     def test_post_appears_on_index_page(self):
         """
