@@ -85,7 +85,7 @@ class PostViewTest(TestCase):
             ' стандартизированной системы законов, действующих во всех '
             'странах союза, был создан общий рынок, гарантирующий '
             'свободное передвижение (движение) людей, товаров.'
-            )
+        )
         self.assertEqual(first_object.group, self.group)
 
     def test_index_page_show_correct_context(self):
