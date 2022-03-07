@@ -1,12 +1,19 @@
-from django.test import TestCase, Client
+import shutil
+import tempfile
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
 from posts.models import Group, Post
 from django.urls import reverse
 from datetime import datetime
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostViewTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -14,6 +21,20 @@ class PostViewTest(TestCase):
         cls.author = User.objects.create_user(username='author')
         cls.authorized_author = Client()
         cls.authorized_author.force_login(cls.author)
+
+        cls.small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        cls.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=cls.small_gif,
+            content_type='image/gif'
+        )
 
         cls.group = Group.objects.create(
             title='Тестовая группа',
@@ -44,8 +65,14 @@ class PostViewTest(TestCase):
                 'общий рынок, гарантирующий свободное передвижение '
                 '(движение) людей, товаров.'
             ),
-            group=cls.group
+            group=cls.group,
+            image=cls.uploaded,
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_namespace_uses_correct_template(self):
         """namespace:name использует соответствующий шаблон"""
@@ -87,6 +114,7 @@ class PostViewTest(TestCase):
             'свободное передвижение (движение) людей, товаров.'
         )
         self.assertEqual(first_object.group, self.group)
+        self.assertEqual(first_object.image, 'posts/small.gif')
 
     def test_index_page_show_correct_context(self):
         """
@@ -120,9 +148,21 @@ class PostViewTest(TestCase):
         first_object = response.context['page_obj'][0]
         self.check_post(first_object)
 
+    def test_post_detail_page_show_correct_context(self):
+        """
+        Содержимое страницы поста должно соответствовать ожиданиям.
+        """
+        response = self.authorized_author.get(reverse(
+            'posts:post_detail',
+            kwargs={'post_id': self.post.id}
+        )
+        )
+        first_object = response.context['post']
+        self.check_post(first_object)
+
     def test_post_appears_on_index_page(self):
         """
-        Тест того, что пост с данным содержанием и с принадлежность к данной
+        Тест того, что пост с данным содержанием и с принадлежностью к данной
         группе был успешно создан.
         """
         self.assertTrue(

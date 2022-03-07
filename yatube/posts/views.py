@@ -14,7 +14,7 @@ def index(request):
     context = {
         'page_obj': page_obj,
     }
-    return render(request, "posts/index.html", context)
+    return render(request, 'posts/index.html', context)
 
 
 def group_posts(request, slug):
@@ -59,7 +59,7 @@ def post_detail(request, post_id):
 @login_required
 def post_create(request):
     groups = Group.objects.all()
-    form = PostForm(request.POST)
+    form = PostForm(request.POST, files=request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -77,7 +77,11 @@ def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if post.author_id != request.user.id:
         return redirect('posts:post_detail', post_id=post_id)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
     if form.is_valid():
         form.save()
         return redirect('posts:post_detail', post_id=post_id)

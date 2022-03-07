@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load thumbnail %}
 {% block header %}
   Пост: {{post|truncatechars:30}}
 {% endblock %}
@@ -26,6 +27,9 @@
       </ul>
     </aside>
     <article class="col-12 col-md-6">
+      {% thumbnail post.image "960x540" crop="center" upscale=True as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
       <p>
         {{ post.text }}
       </p>

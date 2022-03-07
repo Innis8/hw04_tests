@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load thumbnail %}
 {% block header %}
   Последние обновления на сайте
 {% endblock %}
@@ -17,6 +18,9 @@
           Группа: {% if post.group %}<a href="{% url 'posts:group_posts' post.group.slug %}">{% endif %} {{ post.group.title }}</a>
         </li>
       </ul>
+      {% thumbnail post.image "960x540" crop="center" upscale=True as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
       <p>{{ post.text }}</p>
       {% if not forloop.last %}<hr>{% endif %}
       {% endfor %}
