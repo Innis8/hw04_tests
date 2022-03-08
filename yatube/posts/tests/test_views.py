@@ -2,7 +2,7 @@ import shutil
 import tempfile
 from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
-from posts.models import Group, Post
+from posts.models import Group, Post, Comment
 from django.urls import reverse
 from datetime import datetime
 from django.conf import settings
@@ -209,3 +209,58 @@ class PostViewTest(TestCase):
                 group=self.group_without_needed_post
             ).exists()
         )
+
+
+class CommenttViewTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.author = User.objects.create_user(username='author')
+        cls.authorized_author = Client()
+        cls.authorized_author.force_login(cls.author)
+        cls.user = User.objects.create_user(username='user')
+        cls.authorized_user = Client()
+        cls.authorized_user.force_login(cls.user)
+        cls.guest_client = Client()
+
+        cls.post = Post.objects.create(
+            author=cls.author,
+            pub_date=datetime.now(),
+            text='Тестовый пост',
+        )
+
+    def test_comment_authorized_user_can(self):
+        """
+        Авторизованный юзер может комментить
+        """
+        self.authorized_user.post(reverse(
+            'posts:add_comment',
+            kwargs={'post_id': self.post.id}
+        ),
+            {'text': 'Тестовый комментарий', },
+            follow=True
+        )
+        response = self.authorized_user.get(reverse(
+            'posts:post_detail',
+            kwargs={'post_id': self.post.id}
+        ),
+        )
+        self.assertContains(response, 'Тестовый комментарий')
+
+    def test_comment_unauthorized_user_cant(self):
+        """
+        Неавторизованный юзер комментить не может
+        """
+        self.guest_client.post(reverse(
+            'posts:add_comment',
+            kwargs={'post_id': self.post.id}
+        ),
+            {'text': '2 Тестовый комментарий 2', },
+            follow=True
+        )
+        response = self.guest_client.get(reverse(
+            'posts:post_detail',
+            kwargs={'post_id': self.post.id}
+        ),
+        )
+        self.assertNotContains(response, '2 Тестовый комментарий 2')

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
+{% load user_filters %}
 {% block header %}
   Пост: {{post|truncatechars:30}}
 {% endblock %}
@@ -35,9 +36,56 @@
       </p>
     </article>
     {% if user.is_authenticated %}
-    <a class="btn btn-primary col-md-3 offset-md-2" href="{% url 'posts:post_edit' post.id %}">
-      Редактировать пост
-    </a>
+      <a class="btn btn-primary col-md-3 offset-md-2" href="{% url 'posts:post_edit' post.id %}">
+        Редактировать пост
+      </a>
     {% endif %}
+  </div>
+  <div class="row justify-content-center">
+    {% if form.errors %}
+    {% for field in form %} 
+      {% for error in field.errors %}            
+        <div class="alert alert-danger">
+          {{ error|escape }}
+        </div>
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ error|escape }}
+      </div>
+    {% endfor %}
+    {% endif %}
+    {% if user.is_authenticated %}
+      <div class="card my-4 col-md-6 offset-md-3 p-4">
+        <h5 class="card-header">Добавить комментарий:</h5>
+        <div class="card-body">
+          <form method="post" action="{% url 'posts:add_comment' post.id %}">
+            {% csrf_token %}
+            <div class="form-group mb-2">
+              {{ form.text|addclass:"form-control" }}
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="row justify-content-center">
+  {% for comment in comments %}
+    <div class="card mb-4 col-md-6 offset-md-3 p-1">
+        <h5 class="card-header">
+          <a href="{% url 'posts:profile' comment.author.username %}">
+            {{ comment.author.username }}
+          </a>
+        </h5>
+        <div class="card-body">
+        <p>
+         {{ comment.text }}
+        </p>
+      </div>
+    </div>
+  {% endfor %}
   </div>
 {% endblock %}
