@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-
+from core.models import CreatedModel
 
 User = get_user_model()
 
@@ -72,7 +72,7 @@ class Post(models.Model):
         return self.text[:15]
 
 
-class Comment(models.Model):
+class Comment(CreatedModel):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
@@ -87,7 +87,7 @@ class Comment(models.Model):
         verbose_name='Текст комментария',
         help_text='Написать комментарий'
     )
-    created = models.DateTimeField(auto_now_add=True)
+    # created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ('-created',)

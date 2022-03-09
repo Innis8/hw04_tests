@@ -2,6 +2,7 @@ from http import HTTPStatus
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from posts.models import Group, Post
+# from django.core.cache import cache
 
 User = get_user_model()
 
@@ -48,6 +49,7 @@ class PostURLTest(TestCase):
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон и доступен всем."""
+        # cache.clear()
         templates_url_names = {
             'posts/index.html': '/',
             'posts/group_list.html': '/group/test-slug/',

@@ -17,6 +17,9 @@
         <li>
           Дата публикации: {{ post.pub_date|date:"d E Y" }}
         </li>
+        <li>
+          Группа: {% if post.group %}<a href="{% url 'posts:group_posts' post.group.slug %}">{% endif %} {{ post.group.title }}</a>
+        </li>
       </ul>
       {% thumbnail post.image "960x540" crop="center" upscale=True as im %}
         <img class="card-img my-2" src="{{ im.url }}">
@@ -28,7 +31,7 @@
     </article>
     {% if not forloop.last %}<hr>{% endif %}
     {% endfor %}
-    <a href="{% if post.group %}{% url 'posts:group_posts' post.group.slug %}{% endif %}">Все записи группы</a>
+    {% comment %} <a href="{% if post.group %}{% url 'posts:group_posts' post.group.slug %}{% endif %}">Все записи группы</a> {% endcomment %}
     {% if page_obj.has_other_pages %}
       {% include 'posts/includes/paginator.html' %}
     {% endif %}

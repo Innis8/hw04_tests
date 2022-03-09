@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from posts.forms import PostForm, CommentForm
 from django.conf import settings
+# from django.views.decorators.cache import cache_page
 
 
+# @cache_page(20)
 def index(request):
     template = 'posts/index.html'
     posts = Post.objects.all()
@@ -14,6 +16,7 @@ def index(request):
     page_obj = paginator.get_page(page_number)
     context = {
         'page_obj': page_obj,
+        'paginator': paginator,
     }
     return render(request, template, context)
 
