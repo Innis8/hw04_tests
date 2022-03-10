@@ -4,8 +4,8 @@
   Последние обновления на сайте
 {% endblock %}
 {% block content %}
-  {% comment %} {% load cache %}
-  {% cache 20 index_page request.user.username %} {% endcomment %}
+  {% load cache %}
+  {% cache 20 index_page request.user.username %}
   {% include 'posts/includes/switcher.html' %}
   <div class="row justify-content-center">
     <div class="col-md-8 p-5">
@@ -33,7 +33,7 @@
       <a href="{% url 'posts:post_detail' post.id %}">Подробная информация </a>
       {% if not forloop.last %}<hr>{% endif %}
       {% endfor %}
-  {% comment %} {% endcache %}  {% endcomment %}
+  {% endcache %} 
     </div>
   </div>
   {% if page_obj.has_other_pages %}

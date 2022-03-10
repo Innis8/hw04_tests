@@ -40,26 +40,28 @@ def group_posts(request, slug):
 def profile(request, username):
     template = 'posts/profile.html'
     author = get_object_or_404(User, username=username)
-    current_user = request.user
+    # current_user = request.user
     posts = author.posts.all()
     paginator = Paginator(posts, settings.POSTS_PER_PAGE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     followers_count = Follow.objects.filter(author=author).count()
     following_count = Follow.objects.filter(user=author).count()
-    following = Follow.objects.filter(
-        user=current_user,
-        author=author
-    ).exists()
     context = {
         'page_obj': page_obj,
         'author': author,
         'posts': posts,
         'followers_count': followers_count,
         'following_count': following_count,
-        'following': following,
-
     }
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(
+            user=request.user,
+            author=author
+        ).exists()
+        if profile != request.user:
+            context.update({"following": following})
+            return render(request, template, context)
     return render(request, template, context)
 
 

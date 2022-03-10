@@ -2,7 +2,7 @@ import shutil
 import tempfile
 from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
-from posts.models import Group, Post
+from posts.models import Group, Post, Follow
 from django.urls import reverse
 from datetime import datetime
 from django.conf import settings
@@ -312,3 +312,73 @@ class CacheTest(TestCase):
         self.assertEqual(
             response_aft_clr.context['paginator'].count,
             response_bfr.context['paginator'].count)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.author = User.objects.create_user(username='author')
+        cls.authorized_author = Client()
+        cls.authorized_author.force_login(cls.author)
+        cls.user = User.objects.create_user(username='follower')
+        cls.authorized_user = Client()
+        cls.authorized_user.force_login(cls.user)
+
+        cls.post = Post.objects.create(
+            author=cls.author,
+            pub_date=datetime.now(),
+            text='1 Тестовый пост 1',
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
+    def test_authorized_user_can_follow(self):
+        """
+        Авторизованный пользователь может подписываться на других пользователей
+        """
+        self.authorized_user.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        self.assertTrue(Follow.objects.filter(
+            author=self.author,
+            user=self.user).exists()
+        )
+
+    def test_authorized_user_can_unfollow(self):
+        """
+        Авторизованный пользователь может удалять других пользователей
+        из подписок
+        """
+        self.authorized_user.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        self.assertTrue(Follow.objects.filter(
+            author=self.author,
+            user=self.user).exists()
+        )
+        self.authorized_user.get(reverse(
+            'posts:profile_unfollow', kwargs={'username': self.author})
+        )
+        self.assertFalse(Follow.objects.filter(
+            author=self.author,
+            user=self.user).exists()
+        )
+
+    def test_followed_author_posts_shows_in_followers_feed(self):
+        """
+        Новая запись пользователя появляется в ленте тех, кто на него подписан
+        не появляется в ленте тех, кто не подписан.
+        """
+        self.authorized_user.get(
+            reverse('posts:profile_follow', kwargs={'username': self.author})
+        )
+        response = self.authorized_user.get(reverse('posts:follow_index'))
+        followed_post = response.context['page_obj'].object_list[0]
+        self.assertEqual(followed_post, self.post)
+        response = self.authorized_author.get(reverse('posts:follow_index'))
+        self.assertEqual(response.context['paginator'].count, 0)
