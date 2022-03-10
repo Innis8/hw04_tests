@@ -7,7 +7,32 @@
   <div class="row justify-content-center">
     <div class="col-md-8 p-5">
     <h1>Все посты пользователя {{ author.get_full_name }} </h1>
+    <div class="mb-5">
+      {% if following %}
+        <a
+          class="btn btn-lg btn-light"
+          href="{% url 'posts:profile_unfollow' author.username %}" role="button"
+        >
+          Отписаться
+        </a>
+      {% else %}
+          <a
+            class="btn btn-lg btn-primary"
+            href="{% url 'posts:profile_follow' author.username %}" role="button"
+          >
+            Подписаться
+          </a>
+       {% endif %}
+    </div>
     <h3>Всего постов: {{ author.posts.count }} </h3>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+              <div class="h6 text-muted">
+              Подписчиков: {{ followers_count }} <br>
+              Избранных авторов: {{ following_count }}
+              </div>
+      </li>
+    </ul>
     {% for post in page_obj %}
     <article>
       <ul>
@@ -17,8 +42,11 @@
         <li>
           Дата публикации: {{ post.pub_date|date:"d E Y" }}
         </li>
+        {% if post.group %}
         <li>
-          Группа: {% if post.group %}<a href="{% url 'posts:group_posts' post.group.slug %}">{% endif %} {{ post.group.title }}</a>
+          Группа: <a href="{% url 'posts:group_posts' post.group.slug %}">
+          {% endif %}
+          {{ post.group.title }}</a>
         </li>
       </ul>
       {% thumbnail post.image "960x540" crop="center" upscale=True as im %}
